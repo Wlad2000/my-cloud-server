@@ -1,0 +1,5 @@
+{
+    "serverPort": 5000,
+    "dbUrl": "mongodb+srv://wlad:wlad@mycloud.px5cvtp.mongodb.net/?retryWrites=true&w=majority",
+    "KEY": "harashko"
+}
