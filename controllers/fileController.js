@@ -30,8 +30,8 @@ class FileController {
 
     async fetchFiles(req,res) {
         try{
-
-            const files = await File.find({user: req.user.id, parent: req.query.parent})
+            const {sort} = req.query
+            const files = await File.find({user: req.user.id, parent: req.query.parent}).sort({[sort] : 1})
             return res.json(files)
 
         }catch(e){
