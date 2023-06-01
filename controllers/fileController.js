@@ -63,7 +63,7 @@ class FileController {
                 return res.status(400).json({message: "File Already Exist "})
             }
             file.mv(path)
-
+            
             const type = file.name.split(".").pop()
             let filePath = file.name
             if (parent){
@@ -92,7 +92,7 @@ class FileController {
     async downloadFile(req,res){
         try{
             const file = await File.findOne({_id:req.query.id, user: req.user.id})
-            const path = config.get("filePath") + '/' + req.user.id + '/' + file.path
+            const path = fileService.getPath(file)
             if (fs.existsSync(path)){
                 return res.download(path,file.name)
             }
@@ -128,6 +128,36 @@ class FileController {
         }catch(e){
             console.log(e)
             return res.status(400).json({message: "search error"})
+        }
+    }
+
+    async updateStatus(req,res) {
+        try{
+            const id = req.body.id
+            const updateValue = req.body.status
+            console.log(req.query.status)
+            const files = await File.update({_id:id}, {$set:{status: updateValue} }, {
+                new: true
+              });
+            return res.json(files)
+
+
+        }catch(e){
+            console.log(e)
+            return res.status(500).json({message: "error update"})
+        }
+    }
+
+    async searchFileData(req,res){
+        try{
+            const searchV = req.query.searchData
+            let files = await File.find({user: req.user.id})
+            files = files.filter(file => file.date.includes(searchV))
+            return res.json(files)
+           
+        }catch(e){
+            console.log(e)
+            return res.status(400).json({message: "search error DAta"})
         }
     }
 
