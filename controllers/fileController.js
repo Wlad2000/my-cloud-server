@@ -13,10 +13,10 @@ class FileController {
             const parentFile = await File.findOne({_id:parent})
             if(!parentFile){
                  file.path = name
-                 await fileService.createDir(file)
+                 await fileService.createDir(req, file)
             }else{
-                file.path = `${parentFile.path}/${file.name}`
-                await fileService.createDir(file)
+                file.path = `${parentFile.path}\\${file.name}`
+                await fileService.createDir(req, file)
                 parentFile.childs.push(file._id)
                 await parentFile.save()
             }
@@ -54,9 +54,9 @@ class FileController {
 
             let path
             if (parent){
-                path = `${config.get('filePath')}/${user.id}/${parent.path}/${file.name}`
+                path = `${req.filePath}\\${user.id}\\${parent.path}\\${file.name}`
             }else{
-                path = `${config.get('filePath')}/${user.id}/${file.name}`
+                path = `${req.filePath}\\${user.id}\\${file.name}`
             }
 
             if (fs.existsSync(path)){
@@ -67,14 +67,14 @@ class FileController {
             const type = file.name.split(".").pop()
             let filePath = file.name
             if (parent){
-                filePath = parent.path + '/' + file.name
+                filePath = parent.path + '\\' + file.name
             }
             const dbFile = new File({
                 name: file.name,
                 type,
                 size: file.size,
                 path: filePath,
-                parent: parent?._id,
+                parent: parent ? parent._id : null,
                 user: user._id
             })
 
@@ -92,7 +92,7 @@ class FileController {
     async downloadFile(req,res){
         try{
             const file = await File.findOne({_id:req.query.id, user: req.user.id})
-            const path = fileService.getPath(file)
+            const path = fileService.getPath(req, file)
             if (fs.existsSync(path)){
                 return res.download(path,file.name)
             }
@@ -109,7 +109,7 @@ class FileController {
             if (!file){
                 return res.status(400).json({message: "error not found file"})
             }
-            fileService.delFile(file)
+            fileService.delFile(req, file)
             await file.remove()
             return res.json({message: 'File was deleted'})
         }catch(e){
@@ -145,19 +145,6 @@ class FileController {
         }catch(e){
             console.log(e)
             return res.status(500).json({message: "error update"})
-        }
-    }
-
-    async searchFileData(req,res){
-        try{
-            const searchV = req.query.searchData
-            let files = await File.find({user: req.user.id})
-            files = files.filter(file => file.date.includes(searchV))
-            return res.json(files)
-           
-        }catch(e){
-            console.log(e)
-            return res.status(400).json({message: "search error DAta"})
         }
     }
 
